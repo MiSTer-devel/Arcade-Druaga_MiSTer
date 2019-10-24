@@ -1,0 +1,12 @@
+
+00000-07FFF   cpu0
+08000-0BFFF   spchip0
+0C000-0FFFF   spchip1
+10000-11FFF   cpu1
+12000-12FFF   bgchip
+13000-133FF   spclut
+13400-134FF   bgclut
+13500-135FF   wave
+13600-1361F   palet
+
+[EOF]
