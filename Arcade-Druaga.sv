@@ -90,10 +90,10 @@ localparam CONF_STR = {
 	"HFO2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"-;",
-	"H1O7,:: Druaga DipSW Setting :, , ;",
-	"H2O7,:: Mappy DipSW Setting :, , ;",
-	"H3O7,:: DigDug2 DipSW Setting :, , ;",
-	"H4O7,:: Motos DipSW Setting :, , ;",
+	"H1T7,:: Druaga DipSW Setting :;",
+	"H2T7,:: Mappy DipSW Setting :;",
+	"H3T7,:: DigDug2 DipSW Setting :;",
+	"H4T7,:: Motos DipSW Setting :;",
 	"-;",
 
 	"H1O89,Lives,3,2,1,5;",
@@ -444,9 +444,9 @@ always @(posedge PCLK) begin
 		511: begin hcnt <= 0;
 			case (vcnt)
 				223: begin VBLK <= 1; vcnt <= vcnt+1; end
-				226: begin VSYN <= 0; vcnt <= vcnt+1; end
-				233: begin VSYN <= 1; vcnt <= 483;	  end
-				511: begin VBLK <= 0; vcnt <= 0;		  end
+				234: begin VSYN <= 0; vcnt <= vcnt+1; end
+				241: begin VSYN <= 1; vcnt <= 491;    end
+				511: begin VBLK <= 0; vcnt <= 0;	     end
 				default: vcnt <= vcnt+1;
 			endcase
 		end
