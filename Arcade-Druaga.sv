@@ -14,7 +14,7 @@ module emu
 	input         RESET,
 
 	//Must be passed to hps_io module
-	inout  [44:0] HPS_BUS,
+	inout  [45:0] HPS_BUS,
 
 	//Base video clock. Usually equals to CLK_SYS.
 	output        VGA_CLK,
@@ -29,6 +29,7 @@ module emu
 	output        VGA_HS,
 	output        VGA_VS,
 	output        VGA_DE,    // = ~(VBlank | HBlank)
+	output        VGA_F1,
 
 	//Base video clock. Usually equals to CLK_SYS.
 	output        HDMI_CLK,
@@ -59,9 +60,19 @@ module emu
 
 	output [15:0] AUDIO_L,
 	output [15:0] AUDIO_R,
-	output        AUDIO_S    // 1 - signed audio samples, 0 - unsigned
+	output        AUDIO_S,    // 1 - signed audio samples, 0 - unsigned
+
+	// Open-drain User port.
+	// 0 - D+/RX
+	// 1 - D-/TX
+	// 2..6 - USR2..USR6
+	// Set USER_OUT to 1 to read from USER_IN.
+	input   [6:0] USER_IN,
+	output  [6:0] USER_OUT
 );
 
+assign VGA_F1    = 0;
+assign USER_OUT  = '1;
 assign LED_USER  = ioctl_download;
 assign LED_DISK  = 0;
 assign LED_POWER = 0;
@@ -74,9 +85,9 @@ assign HDMI_ARY = status[1] ? 8'd9  : status[2] ? 8'd3 : 8'd4;
 localparam CONF_STR = {
 	"A.Druaga;;",
 	"H0F0,rom;", 	// allow loading of alternate ROMs
-   "H0-;",
-	"O1,Aspect Ratio,Original,Wide;",
-	"O2,Orientation,Vert,Horz;",
+	"H0-;",
+	"HFO1,Aspect Ratio,Original,Wide;",
+	"HFO2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"-;",
 	"H1O7,:: Druaga DipSW Setting :, , ;",
@@ -190,16 +201,15 @@ wire [23:0] DSWs = (tno==1) ? {tDSW2,tDSW1,tDSW0} :
 
 ////////////////////   CLOCKS   ///////////////////
 
-wire clk_hdmi;
 wire clk_48M;
-wire clk_sys = clk_hdmi;
+wire clk_hdmi = clk_48M;
+wire clk_sys = clk_48M;
 
 pll pll
 (
 	.rst(0),
 	.refclk(CLK_50M),
-	.outclk_0(clk_48M),
-	.outclk_1(clk_hdmi)
+	.outclk_0(clk_48M)
 );
 
 ///////////////////////////////////////////////////
@@ -207,6 +217,7 @@ pll pll
 wire [31:0] status;
 wire  [1:0] buttons;
 wire        forced_scandoubler;
+wire        direct_video;
 
 wire        ioctl_download;
 wire        ioctl_wr;
@@ -217,7 +228,8 @@ wire  [7:0] ioctl_index;
 wire [10:0] ps2_key;
 wire [15:0] joystk1, joystk2;
 
-wire [15:0] menumask = ~(16'd1 << tno);
+wire [14:0] menumask = ~(15'd1 << tno);
+wire [21:0] gamma_bus;
 
 hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 (
@@ -229,9 +241,11 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.buttons(buttons),
 
 	.status(status),
-	.status_menumask(menumask),
+	.status_menumask({direct_video,menumask}),
 
 	.forced_scandoubler(forced_scandoubler),
+	.gamma_bus(gamma_bus),
+	.direct_video(direct_video),
 
 	.ioctl_download(ioctl_download),
 	.ioctl_wr(ioctl_wr),
@@ -339,6 +353,8 @@ always @(posedge clk_hdmi) begin
 	ce_pix  <= old_clk & ~ce_vid;
 end
 
+wire no_rotate = status[2] & ~direct_video;
+
 arcade_rotate_fx #(288,224,12,0) arcade_video
 (
 	.*,
@@ -351,8 +367,7 @@ arcade_rotate_fx #(288,224,12,0) arcade_video
 	.HSync(~hs),
 	.VSync(~vs),
 
-	.fx(status[5:3]),
-	.no_rotate(status[2])
+	.fx(status[5:3])
 );
 
 wire			PCLK;
