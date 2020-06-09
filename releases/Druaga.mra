@@ -5,8 +5,8 @@
 	<mratimestamp>20200427161917</mratimestamp>
 	<year>1984</year>
 	<manufacturer>Namco</manufacturer>
-	<category>Adventure / Knights</category>
-	<category>Maze / Extra</category>
+	<category>Adventure, Knights</category>
+	<category>Maze, Extra</category>
 	<rbf>druaga</rbf>
 	<rom index="1">
 		<part>01</part>
