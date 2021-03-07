@@ -197,9 +197,9 @@ reg   [3:0] tno  = 0;
 //	DIPSW[23:20] = IsMappy ? DIPSW[19:16] : DIPSW[11:8];
 //
 wire [23:0] DSWs = (tno==1) ? {tDSW2,tDSW1,tDSW0} :
-						 (tno==2) ? {mDSW2,mDSW1,mDSW0} :
-						 (tno==3) ? {dDSW2,dDSW1,dDSW0} :
-						 (tno==4) ? {oDSW2,oDSW1,oDSW0} : 0;
+				   (tno==2) ? {mDSW2,mDSW1,mDSW0} :
+				   (tno==3) ? {dDSW2,dDSW1,dDSW0} :
+				   (tno==4) ? {oDSW2,oDSW1,oDSW0} : ~24'h0;
 
 
 

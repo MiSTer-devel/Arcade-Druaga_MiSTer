@@ -254,29 +254,30 @@ wire [7:0] mrom_d, srom_d;
 DLROM #(15,8) mcpui( CPUCLKx2, MCPU_ADRS[14:0], mrom_d, ROMCL,ROMAD[14:0],ROMDT,ROMEN & (ROMAD[16:15]==2'b0_0));
 DLROM #(13,8) scpui( CPUCLKx2, SCPU_ADRS[12:0], srom_d, ROMCL,ROMAD[12:0],ROMDT,ROMEN & (ROMAD[16:13]==4'b1_000));
 
-
-wire    mram_cs0 = ( MCPU_ADRS[15:11] == 5'b00000  ) & MCPU_VMA;    // $0000-$07FF
-reg     mram_cs1, mram_cs2, mram_cs3, mram_cs4, mram_cs5;
+reg     mram_cs0, mram_cs1,
+        mram_cs2, mram_cs3,
+        mram_cs4, mram_cs5;
 
 assign  IO_CS    = ( MCPU_ADRS[15:11] == 5'b01001  ) & MCPU_VMA;    // $4800-$4FFF
 
 always @(*) begin
     if( TNO == 4'd5 ) begin
-        mram_cs1 = 0;
+        mram_cs0 = ( MCPU_ADRS[15:10] == 6'b000000 ) & MCPU_VMA;    // $0000-$03FF
+        mram_cs1 = ( MCPU_ADRS[15:10] == 6'b000001 ) & MCPU_VMA;    // $0400-$07FF
         mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00001  ) & MCPU_VMA;    // $1000-$17FF
         mram_cs3 = ( MCPU_ADRS[15:11] == 5'b00010  ) & MCPU_VMA;    // $1800-$1FFF
         mram_cs4 = ( MCPU_ADRS[15:11] == 5'b00011  ) & MCPU_VMA;    // $2000-$27FF
-        mram_cs5 = ( MCPU_ADRS[15:10] == 6'b010000 ) & MCPU_VMA;    // $4000-$43FF
     end else begin
+        mram_cs0 = ( MCPU_ADRS[15:11] == 5'b00000  ) & MCPU_VMA;    // $0000-$07FF
         mram_cs1 = ( MCPU_ADRS[15:11] == 5'b00001  ) & MCPU_VMA;    // $0800-$0FFF
         mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00010  ) & MCPU_VMA;    // $1000-$17FF
         mram_cs3 = ( MCPU_ADRS[15:11] == 5'b00011  ) & MCPU_VMA;    // $1800-$1FFF
         mram_cs4 = ( MCPU_ADRS[15:11] == 5'b00100  ) & MCPU_VMA;    // $2000-$27FF
-        mram_cs5 = ( MCPU_ADRS[15:10] == 6'b010000 ) & MCPU_VMA;    // $4000-$43FF
     end
+        mram_cs5 = ( MCPU_ADRS[15:10] == 6'b010000 ) & MCPU_VMA;    // $4000-$43FF
 end
 
-wire                mrom_cs  =                 ( MCPU_ADRS[15] ) & MCPU_VMA;    // $8000-$FFFF
+wire                mrom_cs  = ( MCPU_ADRS[15] ) & MCPU_VMA;    // $8000-$FFFF
 
 wire                mram_w0  = ( mram_cs0 & MCPU_WE );
 wire                mram_w1  = ( mram_cs1 & MCPU_WE );
