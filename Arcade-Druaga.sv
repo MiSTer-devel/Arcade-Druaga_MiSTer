@@ -1,7 +1,10 @@
 //============================================================================
 //  Arcade: The Tower of Druaga
 //
-//  Original implimentation and port to MiSTer by MiSTer-X 2019
+//  Original implementation and MiSTer port by MiSTer-X 2019
+//
+//  Super Pacman support by Jose Tejada (jotego) March, 2021
+//
 //============================================================================
 
 module emu
@@ -80,7 +83,7 @@ assign LED_POWER = 0;
 assign HDMI_ARX = status[1] ? 8'd16 : status[2] ? 8'd4 : 8'd3;
 assign HDMI_ARY = status[1] ? 8'd9  : status[2] ? 8'd3 : 8'd4;
 
-`include "build_id.v" 
+`include "build_id.v"
 
 localparam CONF_STR = {
 	"A.Druaga;;",
@@ -94,6 +97,7 @@ localparam CONF_STR = {
 	"H2T7,:: Mappy DipSW Setting :;",
 	"H3T7,:: DigDug2 DipSW Setting :;",
 	"H4T7,:: Motos DipSW Setting :;",
+	"H5T7,:: Super Pacman DipSW Setting :;",
 	"-;",
 
 	"H1O89,Lives,3,2,1,5;",
@@ -103,11 +107,11 @@ localparam CONF_STR = {
 	"H2OEG,Extend,M1,M2,M3,M4,M5,M6,M7,None;",
 	"H2OD,Demo Sound,On,Off;",
 	"H2O6,Round Progress,Off,On;",
-	
+
 	"H3OJ,Lives,3,5;",
 	"H3OKL,Extend,30k/80k,30k/100k,30k/120k,30k/150k;",
 	"H3OM,Level Select,Off,On;",
-	
+
 	"H4OO,Rank,A,B;",
 	"H4ON,Lives,3,5;",
 	"H4OPQ,Extend,10k/30k/ev.50k,20k/ev.50k,30k/ev.70k,20k/70k;",
@@ -132,7 +136,7 @@ localparam CONF_STR = {
 };
 
 // Status Bitmap:
-// 0          1          2          3 
+// 0          1          2          3
 // 01234567890123456789012345678901
 // 0123456789ABCDEFGHIJKLMNOPQRSTUV
 // RAOfffmxttmmmmmmmmmddddooooo FSC
@@ -252,7 +256,7 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
 	.ioctl_index(ioctl_index),
-	
+
 	.joystick_0(joystk1),
 	.joystick_1(joystk2),
 	.ps2_key(ps2_key)
@@ -268,7 +272,7 @@ wire [8:0] code    = ps2_key[8:0];
 always @(posedge clk_sys) begin
 	reg old_state;
 	old_state <= ps2_key[10];
-	
+
 	if(old_state != ps2_key[10]) begin
 		casex(code)
 			'hX75: btn_up          <= pressed; // up
@@ -398,15 +402,16 @@ wire	[2:0]	INP2 = { (m_coin1|m_coin2), m_start2, m_start1 };
 wire  [7:0] oPIX;
 wire  [7:0] oSND;
 
-fpga_druaga GameCore ( 
+fpga_druaga GameCore (
 	.RESET(iRST),.MCLK(clk_48M),
 	.PH(HPOS),.PV(VPOS),.PCLK(PCLK),.POUT(oPIX),
 	.SOUT(oSND),
 
 	.INP0(INP0),.INP1(INP1),.INP2(INP2),
 	.DSW0(DSWs[7:0]),.DSW1(DSWs[15:8]),.DSW2(DSWs[23:16]),
-	
-	.ROMCL(clk_sys),.ROMAD(ioctl_addr),.ROMDT(ioctl_dout),.ROMEN(ioctl_wr & (ioctl_index == 0))
+
+	.ROMCL(clk_sys),.ROMAD(ioctl_addr),.ROMDT(ioctl_dout),.ROMEN(ioctl_wr & (ioctl_index == 0)),
+	.TNO( tno )	// Selects the system
 );
 
 assign POUT = {oPIX[7:6],2'b00,oPIX[5:3],1'b0,oPIX[2:0],1'b0};
