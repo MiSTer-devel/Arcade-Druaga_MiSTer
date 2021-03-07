@@ -32,6 +32,8 @@ module fpga_druaga
     input    [3:0]  TNO     // Type Number, 5 for Super Pacman
 );
 
+parameter TNO_SUPERPAC=4'd5;
+
 // Clock Generator
 wire CLK24M,CLKCPUx2;
 wire VCLK_x8,VCLK_x4,VCLK_x2,VCLK_x1;
@@ -99,7 +101,8 @@ REGS regs
     MCPU_IRQ, MCPU_IRQEN,
     SCPU_IRQ, SCPU_IRQEN,
     SCPU_RESET, IO_RESET,
-    PSG_ENABLE
+    PSG_ENABLE,
+    TNO
 );
 
 
@@ -250,6 +253,8 @@ module MEMS
     input     [3:0] TNO
 );
 
+parameter TNO_SUPERPAC=4'd5;
+
 wire [7:0] mrom_d, srom_d;
 DLROM #(15,8) mcpui( CPUCLKx2, MCPU_ADRS[14:0], mrom_d, ROMCL,ROMAD[14:0],ROMDT,ROMEN & (ROMAD[16:15]==2'b0_0));
 DLROM #(13,8) scpui( CPUCLKx2, SCPU_ADRS[12:0], srom_d, ROMCL,ROMAD[12:0],ROMDT,ROMEN & (ROMAD[16:13]==4'b1_000));
@@ -261,7 +266,7 @@ reg     mram_cs0, mram_cs1,
 assign  IO_CS    = ( MCPU_ADRS[15:11] == 5'b01001  ) & MCPU_VMA;    // $4800-$4FFF
 
 always @(*) begin
-    if( TNO == 4'd5 ) begin
+    if( TNO == TNO_SUPERPAC ) begin
         mram_cs0 = ( MCPU_ADRS[15:10] == 6'b000000 ) & MCPU_VMA;    // $0000-$03FF
         mram_cs1 = ( MCPU_ADRS[15:10] == 6'b000001 ) & MCPU_VMA;    // $0400-$07FF
         mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00001  ) & MCPU_VMA;    // $1000-$17FF
@@ -277,26 +282,26 @@ always @(*) begin
         mram_cs5 = ( MCPU_ADRS[15:10] == 6'b010000 ) & MCPU_VMA;    // $4000-$43FF
 end
 
-wire                mrom_cs  = ( MCPU_ADRS[15] ) & MCPU_VMA;    // $8000-$FFFF
+wire       mrom_cs  = ( MCPU_ADRS[15] ) & MCPU_VMA;    // $8000-$FFFF
 
-wire                mram_w0  = ( mram_cs0 & MCPU_WE );
-wire                mram_w1  = ( mram_cs1 & MCPU_WE );
-wire                mram_w2  = ( mram_cs2 & MCPU_WE );
-wire                mram_w3  = ( mram_cs3 & MCPU_WE );
-wire                mram_w4  = ( mram_cs4 & MCPU_WE );
-wire                mram_w5  = ( mram_cs5 & MCPU_WE );
+wire       mram_w0  = ( mram_cs0 & MCPU_WE );
+wire       mram_w1  = ( mram_cs1 & MCPU_WE );
+wire       mram_w2  = ( mram_cs2 & MCPU_WE );
+wire       mram_w3  = ( mram_cs3 & MCPU_WE );
+wire       mram_w4  = ( mram_cs4 & MCPU_WE );
+wire       mram_w5  = ( mram_cs5 & MCPU_WE );
 
-wire    [7:0]       mram_o0, mram_o1, mram_o2, mram_o3, mram_o4, mram_o5;
+wire [7:0] mram_o0, mram_o1, mram_o2, mram_o3, mram_o4, mram_o5;
 
 assign          MCPU_DI  = mram_cs0 ? mram_o0 :
-                                  mram_cs1 ? mram_o1 :
-                                  mram_cs2 ? mram_o2 :
-                                  mram_cs3 ? mram_o3 :
-                                  mram_cs4 ? mram_o4 :
-                                  mram_cs5 ? mram_o5 :
-                                  mrom_cs  ? mrom_d  :
-                                  IO_CS    ? IO_O    :
-                                  8'h0;
+                           mram_cs1 ? mram_o1 :
+                           mram_cs2 ? mram_o2 :
+                           mram_cs3 ? mram_o3 :
+                           mram_cs4 ? mram_o4 :
+                           mram_cs5 ? mram_o5 :
+                           mrom_cs  ? mrom_d  :
+                           IO_CS    ? IO_O    :
+                           8'hFF;
 
 wire    [10:0]  mram_ad = MCPU_ADRS[10:0];
 
@@ -332,17 +337,17 @@ endmodule
 
 module REGS
 (
-    input                   MCPU_CLK,
-    input                   RESET,
-    input                   VBLANK,
+    input               MCPU_CLK,
+    input               RESET,
+    input               VBLANK,
 
     input    [15:0]     MCPU_ADRS,
-    input                   MCPU_VMA,
-    input                   MCPU_WE,
+    input               MCPU_VMA,
+    input               MCPU_WE,
 
     input    [15:0]     SCPU_ADRS,
-    input                   SCPU_VMA,
-    input                   SCPU_WE,
+    input               SCPU_VMA,
+    input               SCPU_WE,
 
     output reg [7:0]    SCROLL,
     output              MCPU_IRQ,
@@ -351,14 +356,23 @@ module REGS
     output reg          SCPU_IRQEN,
     output              SCPU_RESET,
     output              IO_RESET,
-    output reg          PSG_ENABLE
+    output reg          PSG_ENABLE,
+
+    input     [3:0]     TNO
 );
+
+parameter TNO_SUPERPAC=4'd5;
 
 // BG Scroll Register
 wire    MCPU_SCRWE = ( ( MCPU_ADRS[15:11] == 5'b00111 ) & MCPU_VMA & MCPU_WE );
 always @ ( negedge MCPU_CLK or posedge RESET ) begin
     if ( RESET ) SCROLL <= 8'h0;
-    else if ( MCPU_SCRWE ) SCROLL <= MCPU_ADRS[10:3];
+    else begin
+        if( TNO==TNO_SUPERPAC )
+            SCROLL <= 8'h0;
+        else
+            if ( MCPU_SCRWE ) SCROLL <= MCPU_ADRS[10:3];
+    end
 end
 
 // MainCPU IRQ Generator
