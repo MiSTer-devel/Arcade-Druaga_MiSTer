@@ -79,7 +79,8 @@ MEMS mems
     vram_a,vram_d,
     spra_a,spra_d,
 
-    ROMCL,ROMAD,ROMDT,ROMEN
+    ROMCL,ROMAD,ROMDT,ROMEN,
+    TNO
 );
 
 // Control Registers
@@ -245,7 +246,8 @@ module MEMS
     input               ROMCL,  // Downloaded ROM image
     input  [16:0]   ROMAD,
     input     [7:0] ROMDT,
-    input               ROMEN
+    input           ROMEN,
+    input     [3:0] TNO
 );
 
 wire [7:0] mrom_d, srom_d;
@@ -259,7 +261,7 @@ reg     mram_cs1, mram_cs2, mram_cs3, mram_cs4, mram_cs5;
 assign  IO_CS    = ( MCPU_ADRS[15:11] == 5'b01001  ) & MCPU_VMA;    // $4800-$4FFF
 
 always @(*) begin
-    if( TNO = 4'd5 ) begin
+    if( TNO == 4'd5 ) begin
         mram_cs1 = 0;
         mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00001  ) & MCPU_VMA;    // $1000-$17FF
         mram_cs3 = ( MCPU_ADRS[15:11] == 5'b00010  ) & MCPU_VMA;    // $1800-$1FFF
