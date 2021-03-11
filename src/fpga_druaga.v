@@ -265,9 +265,9 @@ wire [7:0] mrom_d, srom_d;
 DLROM #(15,8) mcpui( CPUCLKx2, MCPU_ADRS[14:0], mrom_d, ROMCL,ROMAD[14:0],ROMDT,ROMEN & (ROMAD[16:15]==2'b0_0));
 DLROM #(13,8) scpui( CPUCLKx2, SCPU_ADRS[12:0], srom_d, ROMCL,ROMAD[12:0],ROMDT,ROMEN & (ROMAD[16:13]==4'b1_000));
 
-reg     mram_cs0, mram_cs1,
-        mram_cs2, mram_cs3,
-        mram_cs4, mram_cs5;
+reg  mram_cs0, mram_cs1,
+     mram_cs2, mram_cs3,
+     mram_cs4, mram_cs5;
 
 reg    [10:0] cram_ad;
 wire   [10:0] mram_ad = MCPU_ADRS[10:0];
@@ -311,14 +311,14 @@ assign          MCPU_DI  = mram_cs0 ? mram_o0 :
                            mram_cs5 ? mram_o5 :
                            mrom_cs  ? mrom_d  :
                            IO_CS    ? IO_O    :
-                           8'hFF;
+                           8'h0;
 
-DPRAM_2048V     main_ram0( CPUCLKx2, cram_ad, MCPU_DO, mram_o0, mram_w0, VCLKx4, vram_a, vram_d[7:0]   );
-DPRAM_2048V     main_ram1( CPUCLKx2, cram_ad, MCPU_DO, mram_o1, mram_w1, VCLKx4, vram_a, vram_d[15:8]  );
+DPRAM_2048V main_ram0( CPUCLKx2, cram_ad, MCPU_DO, mram_o0, mram_w0, VCLKx4, vram_a, vram_d[7:0]   );
+DPRAM_2048V main_ram1( CPUCLKx2, cram_ad, MCPU_DO, mram_o1, mram_w1, VCLKx4, vram_a, vram_d[15:8]  );
 
-DPRAM_2048V     main_ram2( CPUCLKx2, mram_ad, MCPU_DO, mram_o2, mram_w2, VCLKx4, { 4'b1111, spra_a }, spra_d[7:0]   );
-DPRAM_2048V     main_ram3( CPUCLKx2, mram_ad, MCPU_DO, mram_o3, mram_w3, VCLKx4, { 4'b1111, spra_a }, spra_d[15:8]  );
-DPRAM_2048V     main_ram4( CPUCLKx2, mram_ad, MCPU_DO, mram_o4, mram_w4, VCLKx4, { 4'b1111, spra_a }, spra_d[23:16] );
+DPRAM_2048V main_ram2( CPUCLKx2, mram_ad, MCPU_DO, mram_o2, mram_w2, VCLKx4, { 4'b1111, spra_a }, spra_d[7:0]   );
+DPRAM_2048V main_ram3( CPUCLKx2, mram_ad, MCPU_DO, mram_o3, mram_w3, VCLKx4, { 4'b1111, spra_a }, spra_d[15:8]  );
+DPRAM_2048V main_ram4( CPUCLKx2, mram_ad, MCPU_DO, mram_o4, mram_w4, VCLKx4, { 4'b1111, spra_a }, spra_d[23:16] );
 
 
                                                                                                 // (SCPU ADRS)
