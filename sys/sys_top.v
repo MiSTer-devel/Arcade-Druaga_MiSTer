@@ -266,7 +266,7 @@ wire [1:0] hdmi_limited = {cfg[11],cfg[8]};
 `ifndef DEBUG_NOHDMI
 wire       direct_video = cfg[10];
 `else
-wire       direct_video = 0;
+wire       direct_video = 1;
 `endif
 wire       dvi_mode     = cfg[7];
 wire       audio_96k    = cfg[6];

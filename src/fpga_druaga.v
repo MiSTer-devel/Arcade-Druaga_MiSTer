@@ -263,15 +263,21 @@ reg     mram_cs0, mram_cs1,
         mram_cs2, mram_cs3,
         mram_cs4, mram_cs5;
 
+reg  [10:0] wram_addr;
+wire [10:0] mram_ad = MCPU_ADRS[10:0];
+
 assign  IO_CS    = ( MCPU_ADRS[15:11] == 5'b01001  ) & MCPU_VMA;    // $4800-$4FFF
 
 always @(*) begin
+    wram_addr = mram_ad;
     if( TNO == TNO_SUPERPAC ) begin
         mram_cs0 = ( MCPU_ADRS[15:10] == 6'b000000 ) & MCPU_VMA;    // $0000-$03FF
         mram_cs1 = ( MCPU_ADRS[15:10] == 6'b000001 ) & MCPU_VMA;    // $0400-$07FF
         mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00001  ) & MCPU_VMA;    // $1000-$17FF
         mram_cs3 = ( MCPU_ADRS[15:11] == 5'b00010  ) & MCPU_VMA;    // $1800-$1FFF
         mram_cs4 = ( MCPU_ADRS[15:11] == 5'b00011  ) & MCPU_VMA;    // $2000-$27FF
+        if(mram_cs0|mram_cs1)
+            wram_addr[10]=1'd0;
     end else begin
         mram_cs0 = ( MCPU_ADRS[15:11] == 5'b00000  ) & MCPU_VMA;    // $0000-$07FF
         mram_cs1 = ( MCPU_ADRS[15:11] == 5'b00001  ) & MCPU_VMA;    // $0800-$0FFF
@@ -303,10 +309,8 @@ assign          MCPU_DI  = mram_cs0 ? mram_o0 :
                            IO_CS    ? IO_O    :
                            8'hFF;
 
-wire    [10:0]  mram_ad = MCPU_ADRS[10:0];
-
-DPRAM_2048V     main_ram0( CPUCLKx2, mram_ad, MCPU_DO, mram_o0, mram_w0, VCLKx4, vram_a, vram_d[7:0]   );
-DPRAM_2048V     main_ram1( CPUCLKx2, mram_ad, MCPU_DO, mram_o1, mram_w1, VCLKx4, vram_a, vram_d[15:8]  );
+DPRAM_2048V     main_ram0( CPUCLKx2, wram_addr, MCPU_DO, mram_o0, mram_w0, VCLKx4, vram_a, vram_d[7:0]   );
+DPRAM_2048V     main_ram1( CPUCLKx2, wram_addr, MCPU_DO, mram_o1, mram_w1, VCLKx4, vram_a, vram_d[15:8]  );
 
 DPRAM_2048V     main_ram2( CPUCLKx2, mram_ad, MCPU_DO, mram_o2, mram_w2, VCLKx4, { 4'b1111, spra_a }, spra_d[7:0]   );
 DPRAM_2048V     main_ram3( CPUCLKx2, mram_ad, MCPU_DO, mram_o3, mram_w3, VCLKx4, { 4'b1111, spra_a }, spra_d[15:8]  );
