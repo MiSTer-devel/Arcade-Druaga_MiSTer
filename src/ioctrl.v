@@ -2,10 +2,15 @@
     FPGA Druaga ( Custom I/O chip emulation part )
 
         Copyright (c) 2007 MiSTer-X
+
+      Super Pacman Support
+                (c) 2021 Jose Tejada, jotego
+
 *****************************************************/
 module IOCTRL( CLK, UPDATE, RESET, ENABLE, WR, ADRS,
     IN, OUT, STKTRG12, CSTART12, DIPSW,
-    TNO, IsMOTOS );
+    IsMOTOS,
+    MODEL );
  input          CLK;
  input          UPDATE;
  input          RESET;
@@ -19,14 +24,14 @@ module IOCTRL( CLK, UPDATE, RESET, ENABLE, WR, ADRS,
  input  [2:0]   CSTART12;       // { COIN, START2P, START1P }
  input  [23:0]  DIPSW;          // { DSW5[3:0] DSW4[3:0] DSW3[3:0], DSW2[3:0], DSW1[3:0], DSW0[3:0] }
 
- input  [ 3:0]  TNO;
  output         IsMOTOS;
+ input  [2:0]   MODEL;
 
 
 reg     [3:0]   mema[0:15];
 reg     [3:0]   memb[0:15];
 reg     [3:0]   memc[0:31];
-reg    [3:0]    outr;
+reg     [3:0]   outr;
 
 reg     [7:0]   credits;
 reg     [7:0]   credit_add, credit_sub;
@@ -37,10 +42,11 @@ reg     [2:0]   pCSTART12;
 reg             bUpdate;
 reg             bIOMode = 0;
 
-parameter [3:0] TNO_MOTOS=4'd4;
+parameter [2:0] SUPERPAC=3'd5;
+
 
 assign  OUT = { 4'b1111, outr };
-assign  IsMOTOS = /*bIOMode &&*/ TNO==TNO_MOTOS;
+assign  IsMOTOS = bIOMode;
 
 wire      [11:0]    iSTKTRG12 = ( STKTRG12 ^ pSTKTRG12 ) & STKTRG12;
 wire        [2:0]   iCSTART12 = ( CSTART12 ^ pCSTART12 ) & CSTART12;
@@ -72,7 +78,8 @@ always @ ( posedge CLK ) begin
     end
     else begin
         if ( UPDATE & (~bUpdate) ) begin
-            if ( mema[4'h8] == 4'h8 ) bIOMode = 1'b1;       // Is running "Motos" ?
+            if ( mema[4'h8] == 4'h8 || MODEL==SUPERPAC )
+                bIOMode <= 1'b1;       // Is running "Motos" ?
 
             if ( bIOMode ) begin
             `include "ioctrl_1.v"

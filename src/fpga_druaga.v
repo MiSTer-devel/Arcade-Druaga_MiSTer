@@ -2,6 +2,9 @@
     FPGA Druaga ( Top module )
 
       Copyright (c) 2007 MiSTer-X
+
+      Super Pacman Support
+        (c) 2021 Jose Tejada, jotego
 ************************************/
 module fpga_druaga
 (
@@ -29,10 +32,8 @@ module fpga_druaga
     input    [16:0] ROMAD,
     input    [7:0]  ROMDT,
     input           ROMEN,
-    input    [3:0]  TNO     // Type Number, 5 for Super Pacman
+    input    [2:0]  MODEL     // Type Number, 5 for Super Pacman
 );
-
-parameter TNO_SUPERPAC=4'd5;
 
 // Clock Generator
 wire CLK24M,CLKCPUx2;
@@ -43,6 +44,7 @@ CLKGEN cgen(
     VCLK_x8,VCLK_x4,VCLK_x2,VCLK_x1
 );
 
+parameter [2:0] SUPERPAC=3'd5;
 
 // Main-CPU Interface
 wire                MCPU_CLK = CLKCPUx2;
@@ -71,7 +73,7 @@ wire [10:0]     vram_a;
 wire [15:0]     vram_d;
 wire [6:0]      spra_a;
 wire [23:0]     spra_d;
-MEMS mems
+MEMS #(.SUPERPAC(SUPERPAC)) mems
 (
     CLKCPUx2,
     MCPU_ADRS, MCPU_VMA, MCPU_WE, MCPU_DO, MCPU_DI, MCPU_CS_IO, IO_O,
@@ -82,7 +84,7 @@ MEMS mems
     spra_a,spra_d,
 
     ROMCL,ROMAD,ROMDT,ROMEN,
-    TNO
+    MODEL
 );
 
 // Control Registers
@@ -92,7 +94,8 @@ wire MCPU_IRQ, MCPU_IRQEN;
 wire SCPU_IRQ, SCPU_IRQEN;
 wire SCPU_RESET, IO_RESET;
 wire PSG_ENABLE;
-REGS regs
+
+REGS #(.SUPERPAC(SUPERPAC)) regs
 (
     CLKCPUx2, RESET, oVB,
     MCPU_ADRS, MCPU_VMA, MCPU_WE,
@@ -102,20 +105,20 @@ REGS regs
     SCPU_IRQ, SCPU_IRQEN,
     SCPU_RESET, IO_RESET,
     PSG_ENABLE,
-    TNO
+    MODEL
 );
 
 
 // I/O Controler
 wire IsMOTOS;
-IOCTRL ioctrl(
+IOCTRL #(.SUPERPAC(SUPERPAC)) ioctrl(
     CLKCPUx2, oVB, IO_RESET, MCPU_CS_IO, MCPU_WE, MCPU_ADRS[5:0],
     MCPU_DO,
     IO_O,
     {INP1,INP0},INP2,
     {DSW2,DSW1,DSW0},
-
-    IsMOTOS
+    IsMOTOS,
+    MODEL
 );
 
 
@@ -133,10 +136,13 @@ DRUAGA_VIDEO video
 
     .SCROLL({1'b0,SCROLL}),
 
-    .ROMCL(ROMCL),.ROMAD(ROMAD),.ROMDT(ROMDT),.ROMEN(ROMEN)
+    .ROMCL(ROMCL),.ROMAD(ROMAD),.ROMDT(ROMDT),.ROMEN(ROMEN),
+    .MODEL(MODEL)
 );
-assign POUT = (IsMOTOS & (PV==0)) ? 8'h0 : oPOUT;
 
+// This prevents a glitch in the sprites for the first line
+// but it hides the top line of the CRT test screen
+assign POUT = (IsMOTOS && (PV==0)) ? 8'h0 : oPOUT;
 
 // MainCPU
 cpucore main_cpu
@@ -250,10 +256,10 @@ module MEMS
     input  [16:0]   ROMAD,
     input     [7:0] ROMDT,
     input           ROMEN,
-    input     [3:0] TNO
+    input     [3:0] MODEL
 );
 
-parameter TNO_SUPERPAC=4'd5;
+parameter [2:0] SUPERPAC=3'd5;
 
 wire [7:0] mrom_d, srom_d;
 DLROM #(15,8) mcpui( CPUCLKx2, MCPU_ADRS[14:0], mrom_d, ROMCL,ROMAD[14:0],ROMDT,ROMEN & (ROMAD[16:15]==2'b0_0));
@@ -263,32 +269,30 @@ reg     mram_cs0, mram_cs1,
         mram_cs2, mram_cs3,
         mram_cs4, mram_cs5;
 
-reg  [10:0] wram_addr;
-wire [10:0] mram_ad = MCPU_ADRS[10:0];
+reg    [10:0] cram_ad;
+wire   [10:0] mram_ad = MCPU_ADRS[10:0];
 
-assign  IO_CS    = ( MCPU_ADRS[15:11] == 5'b01001  ) & MCPU_VMA;    // $4800-$4FFF
+assign IO_CS  = ( MCPU_ADRS[15:11] == 5'b01001  ) & MCPU_VMA;    // $4800-$4FFF
+wire mrom_cs  = ( MCPU_ADRS[15] ) & MCPU_VMA;    // $8000-$FFFF
 
 always @(*) begin
-    wram_addr = mram_ad;
-    if( TNO == TNO_SUPERPAC ) begin
-        mram_cs0 = ( MCPU_ADRS[15:10] == 6'b000000 ) & MCPU_VMA;    // $0000-$03FF
-        mram_cs1 = ( MCPU_ADRS[15:10] == 6'b000001 ) & MCPU_VMA;    // $0400-$07FF
-        mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00001  ) & MCPU_VMA;    // $1000-$17FF
-        mram_cs3 = ( MCPU_ADRS[15:11] == 5'b00010  ) & MCPU_VMA;    // $1800-$1FFF
-        mram_cs4 = ( MCPU_ADRS[15:11] == 5'b00011  ) & MCPU_VMA;    // $2000-$27FF
-        if(mram_cs0|mram_cs1)
-            wram_addr[10]=1'd0;
+    cram_ad = mram_ad;
+    if( MODEL == SUPERPAC ) begin
+        mram_cs0 = ( MCPU_ADRS[15:10] == 6'b000000 ) && MCPU_VMA;    // $0000-$03FF
+        mram_cs1 = ( MCPU_ADRS[15:10] == 6'b000001 ) && MCPU_VMA;    // $0400-$07FF
+        mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00001  ) && MCPU_VMA;    // $1000-$17FF
+        mram_cs3 = ( MCPU_ADRS[15:11] == 5'b00010  ) && MCPU_VMA;    // $1800-$1FFF
+        mram_cs4 = ( MCPU_ADRS[15:11] == 5'b00011  ) && MCPU_VMA;    // $2000-$27FF
+        if( mram_cs0 | mram_cs1 ) cram_ad[10]=0;
     end else begin
-        mram_cs0 = ( MCPU_ADRS[15:11] == 5'b00000  ) & MCPU_VMA;    // $0000-$07FF
-        mram_cs1 = ( MCPU_ADRS[15:11] == 5'b00001  ) & MCPU_VMA;    // $0800-$0FFF
-        mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00010  ) & MCPU_VMA;    // $1000-$17FF
-        mram_cs3 = ( MCPU_ADRS[15:11] == 5'b00011  ) & MCPU_VMA;    // $1800-$1FFF
-        mram_cs4 = ( MCPU_ADRS[15:11] == 5'b00100  ) & MCPU_VMA;    // $2000-$27FF
+        mram_cs0 = ( MCPU_ADRS[15:11] == 5'b00000  ) && MCPU_VMA;    // $0000-$07FF
+        mram_cs1 = ( MCPU_ADRS[15:11] == 5'b00001  ) && MCPU_VMA;    // $0800-$0FFF
+        mram_cs2 = ( MCPU_ADRS[15:11] == 5'b00010  ) && MCPU_VMA;    // $1000-$17FF
+        mram_cs3 = ( MCPU_ADRS[15:11] == 5'b00011  ) && MCPU_VMA;    // $1800-$1FFF
+        mram_cs4 = ( MCPU_ADRS[15:11] == 5'b00100  ) && MCPU_VMA;    // $2000-$27FF
     end
-        mram_cs5 = ( MCPU_ADRS[15:10] == 6'b010000 ) & MCPU_VMA;    // $4000-$43FF
+    mram_cs5 = ( MCPU_ADRS[15:10] == 6'b010000 ) && MCPU_VMA;    // $4000-$43FF
 end
-
-wire       mrom_cs  = ( MCPU_ADRS[15] ) & MCPU_VMA;    // $8000-$FFFF
 
 wire       mram_w0  = ( mram_cs0 & MCPU_WE );
 wire       mram_w1  = ( mram_cs1 & MCPU_WE );
@@ -309,8 +313,8 @@ assign          MCPU_DI  = mram_cs0 ? mram_o0 :
                            IO_CS    ? IO_O    :
                            8'hFF;
 
-DPRAM_2048V     main_ram0( CPUCLKx2, wram_addr, MCPU_DO, mram_o0, mram_w0, VCLKx4, vram_a, vram_d[7:0]   );
-DPRAM_2048V     main_ram1( CPUCLKx2, wram_addr, MCPU_DO, mram_o1, mram_w1, VCLKx4, vram_a, vram_d[15:8]  );
+DPRAM_2048V     main_ram0( CPUCLKx2, cram_ad, MCPU_DO, mram_o0, mram_w0, VCLKx4, vram_a, vram_d[7:0]   );
+DPRAM_2048V     main_ram1( CPUCLKx2, cram_ad, MCPU_DO, mram_o1, mram_w1, VCLKx4, vram_a, vram_d[15:8]  );
 
 DPRAM_2048V     main_ram2( CPUCLKx2, mram_ad, MCPU_DO, mram_o2, mram_w2, VCLKx4, { 4'b1111, spra_a }, spra_d[7:0]   );
 DPRAM_2048V     main_ram3( CPUCLKx2, mram_ad, MCPU_DO, mram_o3, mram_w3, VCLKx4, { 4'b1111, spra_a }, spra_d[15:8]  );
@@ -362,17 +366,17 @@ module REGS
     output              IO_RESET,
     output reg          PSG_ENABLE,
 
-    input     [3:0]     TNO
+    input     [3:0]     MODEL
 );
 
-parameter TNO_SUPERPAC=4'd5;
+parameter [2:0] SUPERPAC=3'd5;
 
 // BG Scroll Register
 wire    MCPU_SCRWE = ( ( MCPU_ADRS[15:11] == 5'b00111 ) & MCPU_VMA & MCPU_WE );
 always @ ( negedge MCPU_CLK or posedge RESET ) begin
     if ( RESET ) SCROLL <= 8'h0;
     else begin
-        if( TNO==TNO_SUPERPAC )
+        if( MODEL==SUPERPAC )
             SCROLL <= 8'h0;
         else
             if ( MCPU_SCRWE ) SCROLL <= MCPU_ADRS[10:3];

@@ -411,7 +411,7 @@ fpga_druaga GameCore (
 	.DSW0(DSWs[7:0]),.DSW1(DSWs[15:8]),.DSW2(DSWs[23:16]),
 
 	.ROMCL(clk_sys),.ROMAD(ioctl_addr),.ROMDT(ioctl_dout),.ROMEN(ioctl_wr & (ioctl_index == 0)),
-	.TNO( tno )	// Selects the system
+	.MODEL( tno[2:0] )	// Selects the system
 );
 
 assign POUT = {oPIX[7:6],2'b00,oPIX[5:3],1'b0,oPIX[2:0],1'b0};
