@@ -42,7 +42,7 @@ reg     [9:0]   pSTKTRG12;
 reg     [2:0]   pCSTART12;
 
 reg             bUpdate;
-reg             bIOMode = 0;
+reg             bIOMode;
 
 parameter [2:0] SUPERPAC=3'd5;
 
@@ -75,8 +75,8 @@ always @ ( posedge CLK ) begin
         pCSTART12  <= 0;
         pSTKTRG12  <= 0;
         bUpdate    <= 0;
-        bIOMode     = 0;
-        credits     = 0;
+        bIOMode    <= 0;
+        credits    <= 0;
     end else begin
         if ( UPDATE & (~bUpdate) ) begin
             if ( mema[4'h8] == 4'h8 || MODEL==SUPERPAC )

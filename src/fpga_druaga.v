@@ -35,6 +35,8 @@ module fpga_druaga
     input    [2:0]  MODEL     // Type Number, 5 for Super Pacman
 );
 
+parameter [2:0] SUPERPAC=3'd5;
+
 // Clock Generator
 wire CLK24M,CLKCPUx2;
 wire VCLK_x8,VCLK_x4,VCLK_x2,VCLK_x1;
@@ -43,8 +45,6 @@ CLKGEN cgen(
     CLK24M,CLKCPUx2,
     VCLK_x8,VCLK_x4,VCLK_x2,VCLK_x1
 );
-
-parameter [2:0] SUPERPAC=3'd5;
 
 // Main-CPU Interface
 wire                MCPU_CLK = CLKCPUx2;
@@ -366,7 +366,7 @@ module REGS
     output              IO_RESET,
     output reg          PSG_ENABLE,
 
-    input     [3:0]     MODEL
+    input     [2:0]     MODEL
 );
 
 parameter [2:0] SUPERPAC=3'd5;
