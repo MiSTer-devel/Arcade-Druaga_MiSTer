@@ -7,8 +7,10 @@
                 (c) 2021 Jose Tejada, jotego
 
 *****************************************************/
-module IOCTRL( CLK, UPDATE, RESET, ENABLE, WR, ADRS,
-    IN, OUT, STKTRG12, CSTART12, DIPSW,
+module IOCTRL( CLK, UPDATE, RESET, ENABLE, WR, ADRS, IN, OUT,
+    STKTRG12,   // Joystick controls
+    CSTART12,   // Start buttons
+    DIPSW,
     IsMOTOS,
     MODEL );
  input          CLK;
@@ -48,14 +50,14 @@ parameter [2:0] SUPERPAC=3'd5;
 assign  OUT = { 4'b1111, outr };
 assign  IsMOTOS = bIOMode;
 
-wire      [11:0]    iSTKTRG12 = ( STKTRG12 ^ pSTKTRG12 ) & STKTRG12;
-wire        [2:0]   iCSTART12 = ( CSTART12 ^ pCSTART12 ) & CSTART12;
+// Detect falling edges:
+wire      [11:0]   iSTKTRG12 = ( STKTRG12 ^ pSTKTRG12 ) & STKTRG12;
+wire      [ 2:0]   iCSTART12 = ( CSTART12 ^ pCSTART12 ) & CSTART12;
 
 wire        [3:0]   CREDIT_ONES, CREDIT_TENS;
 BCDCONV creditsBCD( credits, CREDIT_ONES, CREDIT_TENS );
 
 always @ ( posedge CLK ) begin
-
     if ( ENABLE ) begin
         if ( ADRS[5] )  begin
             if ( WR ) memc[ADRS[4:0]] <= IN;
@@ -75,17 +77,16 @@ always @ ( posedge CLK ) begin
         bUpdate    <= 0;
         bIOMode     = 0;
         credits     = 0;
-    end
-    else begin
+    end else begin
         if ( UPDATE & (~bUpdate) ) begin
             if ( mema[4'h8] == 4'h8 || MODEL==SUPERPAC )
                 bIOMode <= 1'b1;       // Is running "Motos" ?
 
             if ( bIOMode ) begin
-            `include "ioctrl_1.v"
+                `include "ioctrl_1.v"
             end
             else begin
-            `include "ioctrl_0.v"
+                `include "ioctrl_0.v"
             end
 
             pCSTART12 <= CSTART12;

@@ -93,7 +93,7 @@ end
 assign CLT0_A = BGPN ^ ( MODEL==SUPERPAC ? 8'h0 : 8'h03 );
 assign VRAM_A = VRAMADRS & ( MODEL==SUPERPAC ? 11'h3FF : 11'h7FF );
 
-wire			BGHI  = BGH & (CLT0_D!=4'd15);
+wire            BGHI  = BGH & (CLT0_D!=4'd15);
 wire    [4:0]   BGCOL = { 1'b1, (MODEL==SUPERPAC ? ~CLT0_D :CLT0_D) };
 
 always @(*) begin
@@ -142,9 +142,23 @@ assign PCLK = VCLK;
 //----------------------------------------
 //  ROMs
 //----------------------------------------
-DLROM #(12,8) bgchr( VCLKx8, CHRA, BGCH_D,			  ROMCL,ROMAD[11:0],ROMDT[7:0],ROMEN & (ROMAD[16:12]=={1'b1,4'h2}));
-DLROM #(8,4)  clut0( VCLKx8,(CLT0_A^8'h03), CLT0_D,  ROMCL,ROMAD[ 7:0],ROMDT[3:0],ROMEN & (ROMAD[16: 8]=={1'b1,8'h34}));
-DLROM #(5,8)  palet(   VCLK, PALT_A, PALT_D,			  ROMCL,ROMAD[ 4:0],ROMDT[7:0],ROMEN & (ROMAD[16: 5]=={1'b1,8'h36,3'b000}));
+DLROM #(12,8) bgchr(
+			VCLKx8, CHRA, BGCH_D,
+			// ROM download
+			ROMCL,ROMAD[11:0],ROMDT[7:0],ROMEN & (ROMAD[16:12]=={1'b1,4'h2})
+		);
+
+DLROM #(8,4)  clut0(
+			VCLKx8, CLT0_A, CLT0_D,
+			// ROM download
+			ROMCL,ROMAD[ 7:0],ROMDT[3:0],ROMEN & (ROMAD[16: 8]=={1'b1,8'h34})
+		);
+
+DLROM #(5,8)  palet(
+			VCLK, PALT_A, PALT_D,
+			// ROM download
+			ROMCL,ROMAD[ 4:0],ROMDT[7:0],ROMEN & (ROMAD[16: 5]=={1'b1,8'h36,3'b000})
+		);
 
 endmodule
 
