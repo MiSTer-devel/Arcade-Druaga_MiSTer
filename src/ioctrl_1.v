@@ -66,16 +66,27 @@
 			memb[4'h1] <= 4'h9;
 		end
 
+		// Pac'n Pal DIP switches
+		4'h3: begin
+			memb[4'h0] <= 4'h0;
+			memb[4'h1] <= 4'h0;
+			memb[4'h2] <= 4'h0;
+			memb[4'h3] <= 4'h0;
+			memb[4'h4] <= DIPSW[3:0];
+			memb[4'h5] <= DIPSW[23:20];
+			memb[4'h6] <= DIPSW[19:16];
+			memb[4'h7] <= DIPSW[15:12];
+		end
+		// Motos and Super Pacman
 		4'h9: begin
-			memb[4'h2] <= DIPSW[3:0];
-			memb[4'h4] <= DIPSW[7:4];
-			memb[4'h6] <= DIPSW[15:12];
-
-			memb[4'h0] <= 0;
-			memb[4'h1] <= 0;
-			memb[4'h3] <= 0;
-			memb[4'h5] <= 0;
-			memb[4'h7] <= 0;
+			memb[4'h0] <= DIPSW[19:16];     // superpacman
+			memb[4'h1] <= DIPSW[23:20];     // superpacman
+			memb[4'h2] <= DIPSW[3:0];       // motos
+			memb[4'h3] <= DIPSW[3:0];       // superpacman
+			memb[4'h4] <= DIPSW[7:4];       // motos & superpacman
+			memb[4'h5] <= 4'h0;
+			memb[4'h6] <= DIPSW[15:12];     // motos & superpacman
+			memb[4'h7] <= 4'h0;
 		end
 
 		default:;

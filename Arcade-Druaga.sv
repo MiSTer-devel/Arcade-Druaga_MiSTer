@@ -97,8 +97,10 @@ localparam CONF_STR = {
 	"H2T7,:: Mappy DipSW Setting :;",
 	"H3T7,:: DigDug2 DipSW Setting :;",
 	"H4T7,:: Motos DipSW Setting :;",
-	"H5T7,:: Super Pacman DipSW Setting :;",
-	"-;",
+	"H1-;",
+	"H2-;",
+	"H3-;",
+	"H4-;",
 
 	"H1O89,Lives,3,2,1,5;",
 
@@ -129,6 +131,7 @@ localparam CONF_STR = {
 	"H1OT,Freeze,Off,On;",
 	"H2OT,Freeze,Off,On;",
 	"H3OT,Freeze,Off,On;",
+	"DIP;",
 	"-;",
 	"R0,Reset;",
 	"J1,Trig1,Trig2,Start 1P,Start 2P,Coin;",
@@ -193,13 +196,12 @@ wire [7:0] oDSW2 = {8'd0};
 reg   [3:0] tno  = 0;
 
 // Title specific DipSWs
-//
-//	DIPSW[23:20] = IsMappy ? DIPSW[19:16] : DIPSW[11:8];
-//
+
 wire [23:0] DSWs = (tno==1) ? {tDSW2,tDSW1,tDSW0} :
 				   (tno==2) ? {mDSW2,mDSW1,mDSW0} :
 				   (tno==3) ? {dDSW2,dDSW1,dDSW0} :
-				   (tno==4) ? {oDSW2,oDSW1,oDSW0} : 24'h0;
+				   (tno==4) ? {oDSW2,oDSW1,oDSW0} :
+				   (tno==5) ? {sw[2],sw[1],sw[0]} : 24'h0;
 
 
 
@@ -266,6 +268,10 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 always @(posedge clk_sys) begin
 	if (ioctl_wr & (ioctl_index==1)) tno <= ioctl_dout[3:0];
 end
+
+reg [7:0] sw[8];
+always @(posedge clk_sys) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
+
 
 wire       pressed = ps2_key[9];
 wire [8:0] code    = ps2_key[8:0];
