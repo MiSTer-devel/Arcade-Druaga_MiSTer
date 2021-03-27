@@ -15,6 +15,8 @@ module DRUAGA_VIDEO
 
 	input  [8:0]	PH,
 	input  [8:0]	PV,
+	input           flip_screen,
+
 	output			PCLK,
 	output [7:0]	POUT,
 	output			VB,
@@ -74,8 +76,8 @@ wire	 [5:0] ROW2 = ROW + 6'h02;
 wire	 [7:0] CHRC = VRAM_D[7:0];
 wire	 [5:0] BGPL = VRAM_D[13:8];
 
-wire	 [8:0] HP    = HPOS;
-wire	 [8:0] VP    = COL[5] ? VPOS : BGVPOS;
+wire	 [8:0] HP    = {HPOS ^ {9{flip_screen}}} + {{2{flip_screen}}, 6'b0};
+wire	 [8:0] VP    = {COL[5] ? VPOS : BGVPOS} ^ {8{flip_screen}};
 wire	[11:0] CHRA  = { CHRC, ~HP[2], VP[2:0] };
 wire	 [7:0] CHRO  = BGCH_D;
 reg     [10:0] VRAMADRS;
@@ -97,13 +99,13 @@ wire            BGHI  = BGH & (CLT0_D!=4'd15);
 wire    [4:0]   BGCOL = { 1'b1, (MODEL==SUPERPAC ? ~CLT0_D :CLT0_D) };
 
 always @(*) begin
-    COL  = HPOS[8:3];
+    COL  = HPOS[8:3] ^ {5{flip_screen}};
     ROW  = VPOS[8:3];
 
     if( MODEL==SUPERPAC ) begin
         // This +2 adjustment is due to using a linear video timing generator
         // rather than the original circuit count.
-        ROW = ROW + 6'h2;
+        ROW = (ROW + 6'h2) ^ {5{flip_screen}};
         VRAMADRS = { 1'b0,
                       COL[5] ? {COL[4:0], ROW[4:0]} :
                                {ROW[4:0], COL[4:0]}
@@ -126,7 +128,8 @@ DRUAGA_SPRITE #(.SUPERPAC(SUPERPAC)) spr
 	SPCOL,
 
 	ROMCL,ROMAD,ROMDT,ROMEN,
-	MODEL
+	MODEL,
+	flip_screen
 );
 
 

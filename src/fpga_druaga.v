@@ -32,7 +32,8 @@ module fpga_druaga
     input    [16:0] ROMAD,
     input    [7:0]  ROMDT,
     input           ROMEN,
-    input    [2:0]  MODEL     // Type Number, 5 for Super Pacman
+    input    [2:0]  MODEL,    // Type Number, 5 for Super Pacman
+    input           flip_screen
 );
 
 parameter [2:0] SUPERPAC=3'd5;
@@ -129,6 +130,7 @@ DRUAGA_VIDEO video
     .VCLKx8(VCLK_x8),.VCLKx4(VCLK_x4),.VCLK(VCLK_x1),
 
     .PH(PH),.PV(PV),
+    .flip_screen(flip_screen),
     .PCLK(PCLK),.POUT(oPOUT),.VB(oVB),
 
     .VRAM_A(vram_a), .VRAM_D(vram_d),

@@ -92,6 +92,7 @@ localparam CONF_STR = {
 	"HFO1,Aspect Ratio,Original,Wide;",
 	"HFO2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
+	"H5OS,Flip Screen,Off,On;",
 	"-;",
 	"H1T7,:: Druaga DipSW Setting :;",
 	"H2T7,:: Mappy DipSW Setting :;",
@@ -119,11 +120,11 @@ localparam CONF_STR = {
 	"H4OPQ,Extend,10k/30k/ev.50k,20k/ev.50k,30k/ev.70k,20k/70k;",
 	"H4OR,Demo Sound,On,Off;",
 
-	"-;",
-/*	"H1OV,Cabinet,Upright,Cocktail;",
-	"H2OV,Cabinet,Upright,Cocktail;",
-	"H3OV,Cabinet,Upright,Cocktail;",
-	"H4OV,Cabinet,Upright,Cocktail;", */
+	"H14-;",
+	//"H1OV,Cabinet,Upright,Cocktail;",
+	//"H2OV,Cabinet,Upright,Cocktail;",
+	//"H3OV,Cabinet,Upright,Cocktail;",
+	//"H4OV,Cabinet,Upright,Cocktail;",
 	"H1OU,Service Mode,Off,On;",
 	"H2OU,Service Mode,Off,On;",
 	"H3OU,Service Mode,Off,On;",
@@ -417,7 +418,8 @@ fpga_druaga GameCore (
 	.DSW0(DSWs[7:0]),.DSW1(DSWs[15:8]),.DSW2(DSWs[23:16]),
 
 	.ROMCL(clk_sys),.ROMAD(ioctl_addr),.ROMDT(ioctl_dout),.ROMEN(ioctl_wr & (ioctl_index == 0)),
-	.MODEL( tno[2:0] )	// Selects the system
+	.MODEL( tno[2:0] ),	// Selects the system
+	.flip_screen(status[28])
 );
 
 assign POUT = {oPIX[7:6],2'b00,oPIX[5:3],1'b0,oPIX[2:0],1'b0};
