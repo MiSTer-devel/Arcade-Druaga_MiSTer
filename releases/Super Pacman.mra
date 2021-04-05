@@ -39,9 +39,9 @@
 	</rom>
 	<switches default="00,00,00">
 		<dip bits="0,3"    name="Rank" ids="0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F"/>
-		<dip bits="16,18"  name="Coin A" ids="1C_1c,1C_2c,1C_3c,1C_6c,1C_7c,2C_1c,2C_3c,3C_1c"/>
-		<dip bits="4,5"    name="Coin B" ids="1C_1c,1C_2c,2C_1c,2C_3c"/>
-		<dip bits="6"	   name="Demo Sounds" ids="Off,On"></dip>
+		<dip bits="16,18"  name="Coin A" ids="1 Coin  1 Credit ,1 Coin  2 Credits,1 Coin  3 Credits,1 Coin  6 Credits,1 Coin  7 Credits,2 Coins 1 Credit ,2 Coins 3 Credits,3 Coins 1 Credit "/>
+		<dip bits="4,5"    name="Coin B" ids="1 Coin  1 Credit ,1 Coin  2 Credits,2 Coins 1 Credit ,2 Coins 3 Credits"/>
+		<dip bits="6"	   name="Demo Sounds" ids="On,Off"></dip>
 		<dip bits="7"	   name="Freeze" ids="Off,On"></dip>
 		<dip bits="22,23"  name="Lives" ids="3,1,2,5"/>
 		<dip bits="19,21"  name="Bonus Life" ids="30k/100k,30k/80k,30k/120k,30k/80k/ev.80k,30k/100k/ev.100k,30k/120k/ev.120k,30k,No Bonus"/>
