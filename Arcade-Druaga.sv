@@ -1,7 +1,10 @@
 //============================================================================
 //  Arcade: The Tower of Druaga
 //
-//  Original implimentation and port to MiSTer by MiSTer-X 2019
+//  Original implementation and MiSTer port by MiSTer-X 2019
+//
+//  Super Pacman support by Jose Tejada (jotego) March, 2021
+//
 //============================================================================
 
 module emu
@@ -80,7 +83,7 @@ assign LED_POWER = 0;
 assign HDMI_ARX = status[1] ? 8'd16 : status[2] ? 8'd4 : 8'd3;
 assign HDMI_ARY = status[1] ? 8'd9  : status[2] ? 8'd3 : 8'd4;
 
-`include "build_id.v" 
+`include "build_id.v"
 
 localparam CONF_STR = {
 	"A.Druaga;;",
@@ -89,12 +92,16 @@ localparam CONF_STR = {
 	"HFO1,Aspect Ratio,Original,Wide;",
 	"HFO2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
+	"H5OS,Flip Screen,Off,On;",
 	"-;",
 	"H1T7,:: Druaga DipSW Setting :;",
 	"H2T7,:: Mappy DipSW Setting :;",
 	"H3T7,:: DigDug2 DipSW Setting :;",
 	"H4T7,:: Motos DipSW Setting :;",
-	"-;",
+	"H1-;",
+	"H2-;",
+	"H3-;",
+	"H4-;",
 
 	"H1O89,Lives,3,2,1,5;",
 
@@ -103,21 +110,21 @@ localparam CONF_STR = {
 	"H2OEG,Extend,M1,M2,M3,M4,M5,M6,M7,None;",
 	"H2OD,Demo Sound,On,Off;",
 	"H2O6,Round Progress,Off,On;",
-	
+
 	"H3OJ,Lives,3,5;",
 	"H3OKL,Extend,30k/80k,30k/100k,30k/120k,30k/150k;",
 	"H3OM,Level Select,Off,On;",
-	
+
 	"H4OO,Rank,A,B;",
 	"H4ON,Lives,3,5;",
 	"H4OPQ,Extend,10k/30k/ev.50k,20k/ev.50k,30k/ev.70k,20k/70k;",
 	"H4OR,Demo Sound,On,Off;",
 
-	"-;",
-/*	"H1OV,Cabinet,Upright,Cocktail;",
-	"H2OV,Cabinet,Upright,Cocktail;",
-	"H3OV,Cabinet,Upright,Cocktail;",
-	"H4OV,Cabinet,Upright,Cocktail;", */
+	"H14-;",
+	//"H1OV,Cabinet,Upright,Cocktail;",
+	//"H2OV,Cabinet,Upright,Cocktail;",
+	//"H3OV,Cabinet,Upright,Cocktail;",
+	//"H4OV,Cabinet,Upright,Cocktail;",
 	"H1OU,Service Mode,Off,On;",
 	"H2OU,Service Mode,Off,On;",
 	"H3OU,Service Mode,Off,On;",
@@ -125,6 +132,7 @@ localparam CONF_STR = {
 	"H1OT,Freeze,Off,On;",
 	"H2OT,Freeze,Off,On;",
 	"H3OT,Freeze,Off,On;",
+	"DIP;",
 	"-;",
 	"R0,Reset;",
 	"J1,Trig1,Trig2,Start 1P,Start 2P,Coin;",
@@ -132,7 +140,7 @@ localparam CONF_STR = {
 };
 
 // Status Bitmap:
-// 0          1          2          3 
+// 0          1          2          3
 // 01234567890123456789012345678901
 // 0123456789ABCDEFGHIJKLMNOPQRSTUV
 // RAOfffmxttmmmmmmmmmddddooooo FSC
@@ -189,13 +197,12 @@ wire [7:0] oDSW2 = {8'd0};
 reg   [3:0] tno  = 0;
 
 // Title specific DipSWs
-//
-//	DIPSW[23:20] = IsMappy ? DIPSW[19:16] : DIPSW[11:8];
-//
+
 wire [23:0] DSWs = (tno==1) ? {tDSW2,tDSW1,tDSW0} :
-						 (tno==2) ? {mDSW2,mDSW1,mDSW0} :
-						 (tno==3) ? {dDSW2,dDSW1,dDSW0} :
-						 (tno==4) ? {oDSW2,oDSW1,oDSW0} : 0;
+				   (tno==2) ? {mDSW2,mDSW1,mDSW0} :
+				   (tno==3) ? {dDSW2,dDSW1,dDSW0} :
+				   (tno==4) ? {oDSW2,oDSW1,oDSW0} :
+				   (tno==5) ? {sw[2],sw[1],sw[0]} : 24'h0;
 
 
 
@@ -252,7 +259,7 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
 	.ioctl_index(ioctl_index),
-	
+
 	.joystick_0(joystk1),
 	.joystick_1(joystk2),
 	.ps2_key(ps2_key)
@@ -263,12 +270,16 @@ always @(posedge clk_sys) begin
 	if (ioctl_wr & (ioctl_index==1)) tno <= ioctl_dout[3:0];
 end
 
+reg [7:0] sw[8];
+always @(posedge clk_sys) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
+
+
 wire       pressed = ps2_key[9];
 wire [8:0] code    = ps2_key[8:0];
 always @(posedge clk_sys) begin
 	reg old_state;
 	old_state <= ps2_key[10];
-	
+
 	if(old_state != ps2_key[10]) begin
 		casex(code)
 			'hX75: btn_up          <= pressed; // up
@@ -398,15 +409,17 @@ wire	[2:0]	INP2 = { (m_coin1|m_coin2), m_start2, m_start1 };
 wire  [7:0] oPIX;
 wire  [7:0] oSND;
 
-fpga_druaga GameCore ( 
+fpga_druaga GameCore (
 	.RESET(iRST),.MCLK(clk_48M),
 	.PH(HPOS),.PV(VPOS),.PCLK(PCLK),.POUT(oPIX),
 	.SOUT(oSND),
 
 	.INP0(INP0),.INP1(INP1),.INP2(INP2),
 	.DSW0(DSWs[7:0]),.DSW1(DSWs[15:8]),.DSW2(DSWs[23:16]),
-	
-	.ROMCL(clk_sys),.ROMAD(ioctl_addr),.ROMDT(ioctl_dout),.ROMEN(ioctl_wr & (ioctl_index == 0))
+
+	.ROMCL(clk_sys),.ROMAD(ioctl_addr),.ROMDT(ioctl_dout),.ROMEN(ioctl_wr & (ioctl_index == 0)),
+	.MODEL( tno[2:0] ),	// Selects the system
+	.flip_screen(status[28])
 );
 
 assign POUT = {oPIX[7:6],2'b00,oPIX[5:3],1'b0,oPIX[2:0],1'b0};

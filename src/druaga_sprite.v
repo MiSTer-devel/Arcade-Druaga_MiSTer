@@ -1,7 +1,11 @@
 /***********************************
-	FPGA Druaga ( Sprite Part )
+    FPGA Druaga ( Sprite Part )
 
-	  Copyright (c) 2007 MiSTer-X
+      Copyright (c) 2007 MiSTer-X
+
+      Super Pacman Support
+                (c) 2021 Jose Tejada, jotego
+
 ************************************/
 module DRUAGA_SPRITE
 (
@@ -17,15 +21,19 @@ module DRUAGA_SPRITE
 	input	 [23:0]	SPRA_D,
 
 	output [4:0]	SPCOL,
-	
+
 
 	input				ROMCL,	// Downloaded ROM image
 	input  [16:0]	ROMAD,
 	input	  [7:0]	ROMDT,
-	input				ROMEN
+	input				ROMEN,
+   input   [2:0]  MODEL,
+   input          flip_screen
 );
 
-wire [9:0]	CLT1_A;
+parameter [2:0] SUPERPAC=3'd5;
+
+reg  [9:0]	CLT1_A;
 wire [3:0]	CLT1_D;
 DLROM #(10,4) clut1( VCLKx8, CLT1_A, CLT1_D, ROMCL,ROMAD[9:0],ROMDT[3:0],ROMEN & (ROMAD[16:10]=={1'b1,4'h3,2'b00}));
 
@@ -52,7 +60,7 @@ reg	[6:0]	nProc = 7'h0;					// 0~64
 reg			bLoad = 1'b0;					// 0/1
 wire	[7:0]	spriteram   = SPRA_D[7:0];
 wire	[7:0]	spriteram_2 = SPRA_D[15:8];
-wire	[7:0]	spriteram_3 = SPRA_D[23:16]; 
+wire	[7:0]	spriteram_3 = SPRA_D[23:16];
 assign		SPRA_A		= {nProc[5:0],bLoad};
 
 // laster hit check
@@ -70,14 +78,20 @@ reg	[4:0] _msky = 5'b01111;
 reg			bKick = 1'b0;
 
 reg	[7:0]	cno;
-wire	[4:0]	ox = { lpcn ^ xf };
+wire	[4:0]	ox = lpcn ^ xf ^ {flip_screen & _sizx, {4{flip_screen}}};
 assign SPCH_A = { cno[7:2], (cno[1]|sy[4]), (cno[0]|ox[4]), sy[3], ox[3:2], sy[2:0] };
 
 wire	[15:0] SPCO = SPCH_D;
-assign CLT1_A = (ox[1:0]==2'b00) ? { pn, SPCO[15], SPCO[11], SPCO[7], SPCO[3] } :
-					 (ox[1:0]==2'b01) ? { pn, SPCO[14], SPCO[10], SPCO[6], SPCO[2] } :
-					 (ox[1:0]==2'b10) ? { pn, SPCO[13], SPCO[ 9], SPCO[5], SPCO[1] } :
-											  { pn, SPCO[12], SPCO[ 8], SPCO[4], SPCO[0] } ;
+
+always @(*) begin
+    CLT1_A = (ox[1:0]==2'b00) ? { pn, SPCO[15], SPCO[11], SPCO[7], SPCO[3] } :
+             (ox[1:0]==2'b01) ? { pn, SPCO[14], SPCO[10], SPCO[6], SPCO[2] } :
+             (ox[1:0]==2'b10) ? { pn, SPCO[13], SPCO[ 9], SPCO[5], SPCO[1] } :
+                                { pn, SPCO[12], SPCO[ 8], SPCO[4], SPCO[0] } ;
+    if( MODEL == SUPERPAC ) begin  // 2bpp
+        CLT1_A[9:2]= { 2'd0, CLT1_A[9:4] };
+    end
+end
 
 wire [3:0] SPCL;
 assign SPCOL = {1'b0,SPCL};
@@ -110,7 +124,7 @@ always @( negedge VCLK ) begin
 				end
 				else begin
 					   pn <= spriteram[5:0];
-					   sx <= { spriteram_3[0], spriteram_2[7:0] } - 9'h38;
+					   sx <= {{spriteram_3[0], spriteram_2[7:0]} ^ {9{flip_screen}}} - 9'h38 + {9'h161 & {9{flip_screen}}} - {flip_screen & _sizx, 4'b0};
 						sy <= ( sy & _msky ) ^ yf;
 					 loop <= spriteram_3[1] ? 6'h0 : { _sizx, ~_sizx, 4'h0 };
 					 lpcn <= 6'h0;
@@ -123,7 +137,7 @@ always @( negedge VCLK ) begin
 	else begin				// Horizontal blanking time
 		if (bKick) begin
 			lbufr <= ~VPOS[0];
-			vposl <= VPOS+1;
+			vposl <= {VPOS ^ {9{flip_screen}}} + 1 + {220 & {9{flip_screen}}};
 			nProc <= 0;
 			bKick <= 1'b0;
 		end
@@ -150,7 +164,7 @@ output	[3:0]	OUT;
 wire	[3:0]		OUT0, OUT1;
 
 wire				SIDE0  = ~SIDE1;
-wire				OPAQUE = ~( IN[0] & IN[1] & IN[2] & IN[3] ); 
+wire				OPAQUE = ~( IN[0] & IN[1] & IN[2] & IN[3] );
 
 assign			OUT = SIDE1 ? OUT1 : OUT0;
 
