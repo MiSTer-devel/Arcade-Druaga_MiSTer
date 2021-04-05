@@ -46,6 +46,6 @@
 		<dip bits="22,23"  name="Lives" ids="3,1,2,5"/>
 		<dip bits="19,21"  name="Bonus Life" ids="30k/100k,30k/80k,30k/120k,30k/80k/ev.80k,30k/100k/ev.100k,30k/120k/ev.120k,30k,No Bonus"/>
 		<dip bits="15"	   name="Service Mode" ids="Off,On"></dip>
-		<dip bits="14"	   name="Cabinet" ids="Upright,Cocktail"></dip>
+		<!-- dip bits="14" name="Cabinet" ids="Upright,Cocktail"></dip -->
 	</switches>
 </misterromdescription>
