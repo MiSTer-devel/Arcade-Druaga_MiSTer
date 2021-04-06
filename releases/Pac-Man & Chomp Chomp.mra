@@ -4,6 +4,7 @@
 	<setname>pacnchmp</setname>
         <year>1983</year>
         <manufacturer>Namco</manufacturer>
+	<category>Maze</category>
 	<rbf>druaga</rbf>
 	<mratimestamp>20210326</mratimestamp>
 	<rom index="1">
