@@ -4,6 +4,7 @@
 	<setname>pacnpal</setname>
         <manufacturer>Namco</manufacturer>
         <year>1983</year>
+	<category>Maze</category>
 	<rbf>druaga</rbf>
 	<mratimestamp>20210326</mratimestamp>
 	<rom index="1">
