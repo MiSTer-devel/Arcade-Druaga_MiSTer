@@ -92,7 +92,7 @@ localparam CONF_STR = {
 	"HFO1,Aspect Ratio,Original,Wide;",
 	"HFO2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-	"H5OS,Flip Screen,Off,On;",
+	"O7,Flip Screen,Off,On;",
 	"-;",
 	"H1T7,:: Druaga DipSW Setting :;",
 	"H2T7,:: Mappy DipSW Setting :;",
@@ -419,7 +419,7 @@ fpga_druaga GameCore (
 
 	.ROMCL(clk_sys),.ROMAD(ioctl_addr),.ROMDT(ioctl_dout),.ROMEN(ioctl_wr & (ioctl_index == 0)),
 	.MODEL( tno[2:0] ),	// Selects the system
-	.flip_screen(status[28])
+	.flip_screen(status[7])
 );
 
 assign POUT = {oPIX[7:6],2'b00,oPIX[5:3],1'b0,oPIX[2:0],1'b0};

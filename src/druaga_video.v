@@ -60,7 +60,7 @@ wire [7:0]	BGCH_D;
 // BG scroll registers
 //
 reg  [8:0] BGVSCR;
-wire [8:0] BGVPOS = BGVSCR + VPOS;
+wire [8:0] BGVPOS = ({8{flip_screen}} ^ BGVSCR) + VPOS + (9'h121 & {9{flip_screen}});
 always @(posedge oHB) BGVSCR <= SCROLL;
 
 
@@ -68,15 +68,15 @@ always @(posedge oHB) BGVSCR <= SCROLL;
 //  BG scanline generator
 //----------------------------------------
 reg	 [7:0] BGPN;
-reg			 BGH;
+reg	       BGH;
 
-reg    [5:0] COL, ROW;
-wire	 [5:0] ROW2 = ROW + 6'h02;
+reg	 [5:0] COL, ROW;
+wire	       ROW4 = {(VPOS[7:5] + flip_screen) >> 2} ^ flip_screen;
 
 wire	 [7:0] CHRC = VRAM_D[7:0];
 wire	 [5:0] BGPL = VRAM_D[13:8];
 
-wire	 [8:0] HP    = {HPOS ^ {9{flip_screen}}} + {{2{flip_screen}}, 6'b0};
+wire	 [8:0] HP    = HPOS ^ {8{flip_screen}};
 wire	 [8:0] VP    = {COL[5] ? VPOS : BGVPOS} ^ {8{flip_screen}};
 wire	[11:0] CHRA  = { CHRC, ~HP[2], VP[2:0] };
 wire	 [7:0] CHRO  = BGCH_D;
@@ -99,19 +99,18 @@ wire            BGHI  = BGH & (CLT0_D!=4'd15);
 wire    [4:0]   BGCOL = { 1'b1, (MODEL==SUPERPAC ? ~CLT0_D :CLT0_D) };
 
 always @(*) begin
+    // This +2 adjustment is due to using a linear video timing generator
+    // rather than the original circuit count.
+    ROW = (VPOS[8:3] + 6'h2) ^ {5{flip_screen}};
     COL  = HPOS[8:3] ^ {5{flip_screen}};
-    ROW  = VPOS[8:3];
 
     if( MODEL==SUPERPAC ) begin
-        // This +2 adjustment is due to using a linear video timing generator
-        // rather than the original circuit count.
-        ROW = (ROW + 6'h2) ^ {5{flip_screen}};
         VRAMADRS = { 1'b0,
                       COL[5] ? {COL[4:0], ROW[4:0]} :
                                {ROW[4:0], COL[4:0]}
                    };
     end else begin
-        VRAMADRS = COL[5] ? { 4'b1111, COL[1:0], ROW[4], ROW[3:0]+4'h2 } :
+        VRAMADRS = COL[5] ? { 4'b1111, COL[1:0], ROW4, ROW[3:0] } :
                                            { VP[8:3], HP[7:3] };
     end
 end
