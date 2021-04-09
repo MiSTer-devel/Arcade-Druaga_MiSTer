@@ -36,4 +36,14 @@
 		<part crc="16a9166a" name="mp1-3.3m"/>
 		<part crc="56531268" name="mp1-5.5b"/>
 	</rom>
+	<switches default="00,00,00">
+		<dip bits="0,2"    name="Rank" ids="A,B,C,D,E,F,G,H"/>
+		<dip bits="5"      name="Demo Sounds" ids="On,Off"></dip>
+		<dip bits="6"      name="Round Progress" ids="Off,On"></dip>
+		<dip bits="7"      name="Freeze" ids="Off,On"></dip>
+		<dip bits="11,13"  name="Bonus Life" ids="M1,M2,M3,M4,M5,M6,M7,None"/>
+		<dip bits="14,15"  name="Lives" ids="3,5,1,2"/>
+		<!-- dip bits="18" name="Cabinet" ids="Upright,Cocktail"></dip -->
+		<dip bits="19"	   name="Service Mode" ids="Off,On"></dip>
+	</switches>
 </misterromdescription>

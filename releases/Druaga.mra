@@ -25,4 +25,10 @@
 		<part crc="07104c40" name="td1-3.3m"/>
 		<part crc="122cc395" name="td1-5.5b"/>
 	</rom>
+	<switches default="00,00,00">
+		<dip bits="4,5"    name="Lives" ids="3,2,1,5"/>
+		<dip bits="8"	   name="Freeze" ids="Off,On"></dip>
+		<!-- dip bits="15" name="Cabinet" ids="Upright,Cocktail"></dip -->
+		<dip bits="19"	   name="Service Mode" ids="Off,On"></dip>
+	</switches>
 </misterromdescription>
