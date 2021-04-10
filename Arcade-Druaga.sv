@@ -92,46 +92,8 @@ localparam CONF_STR = {
 	"HFO1,Aspect Ratio,Original,Wide;",
 	"HFO2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-	"H5OS,Flip Screen,Off,On;",
+	"O7,Flip Screen,Off,On;",
 	"-;",
-	"H1T7,:: Druaga DipSW Setting :;",
-	"H2T7,:: Mappy DipSW Setting :;",
-	"H3T7,:: DigDug2 DipSW Setting :;",
-	"H4T7,:: Motos DipSW Setting :;",
-	"H1-;",
-	"H2-;",
-	"H3-;",
-	"H4-;",
-
-	"H1O89,Lives,3,2,1,5;",
-
-	"H2OAC,Rank,A,B,C,D,E,F,G,H;",
-	"H2OHI,Lives,3,5,1,2;",
-	"H2OEG,Extend,M1,M2,M3,M4,M5,M6,M7,None;",
-	"H2OD,Demo Sound,On,Off;",
-	"H2O6,Round Progress,Off,On;",
-
-	"H3OJ,Lives,3,5;",
-	"H3OKL,Extend,30k/80k,30k/100k,30k/120k,30k/150k;",
-	"H3OM,Level Select,Off,On;",
-
-	"H4OO,Rank,A,B;",
-	"H4ON,Lives,3,5;",
-	"H4OPQ,Extend,10k/30k/ev.50k,20k/ev.50k,30k/ev.70k,20k/70k;",
-	"H4OR,Demo Sound,On,Off;",
-
-	"H14-;",
-	//"H1OV,Cabinet,Upright,Cocktail;",
-	//"H2OV,Cabinet,Upright,Cocktail;",
-	//"H3OV,Cabinet,Upright,Cocktail;",
-	//"H4OV,Cabinet,Upright,Cocktail;",
-	"H1OU,Service Mode,Off,On;",
-	"H2OU,Service Mode,Off,On;",
-	"H3OU,Service Mode,Off,On;",
-	"H4OU,Service Mode,Off,On;",
-	"H1OT,Freeze,Off,On;",
-	"H2OT,Freeze,Off,On;",
-	"H3OT,Freeze,Off,On;",
 	"DIP;",
 	"-;",
 	"R0,Reset;",
@@ -145,65 +107,14 @@ localparam CONF_STR = {
 // 0123456789ABCDEFGHIJKLMNOPQRSTUV
 // RAOfffmxttmmmmmmmmmddddooooo FSC
 
-// (common)
-wire		  dcFreeze   = status[29];
-wire		  dcService  = status[30];
-//wire	  dcCabinet  = status[31];
-wire	 	  dcCabinet  = 1'b0;				// (upright only)
-
-
-// The Tower of Druaga [t]
-wire [1:0] dtLives	 = status[9:8];
-
-wire [7:0] tDSW0 = {2'd0,dtLives,4'd0};
-wire [7:0] tDSW1 = {dcCabinet,6'd0,dcFreeze};
-wire [7:0] tDSW2 = {tDSW1[3:0],dcService,3'd0};
-
-
-// Mappy [m]
-wire		  dmRoundP   = status[6];
-wire [2:0] dmRank		 = status[12:10];
-wire 		  dmDemoSnd	 = status[13];
-wire [2:0] dmExtend	 = status[16:14];
-wire [1:0] dmLives    = status[18:17];
-
-wire [7:0] mDSW0 = {dcFreeze,dmRoundP,dmDemoSnd,2'd0,dmRank};
-wire [7:0] mDSW1 = {dmLives,dmExtend,3'd0};
-wire [7:0] mDSW2 = {{2{dcService,dcCabinet,2'd0}}};
-
-
-// DigDug2 [d]
-wire		  ddLives    = status[19];
-wire [1:0] ddExtend   = status[21:20];
-wire 		  ddLevelSel = status[22];
-
-wire [7:0] dDSW0 = {2'd0,ddLives,5'd0};
-wire [7:0] dDSW1 = {dcCabinet,3'd0,dcFreeze,ddLevelSel,ddExtend};
-wire [7:0] dDSW2 = {dDSW1[3:0],dcService,3'd0};
-
-
-
-// Motos [o]
-wire       doLives    = status[23];
-wire       doRank     = status[24];
-wire [1:0] doExtend   = status[26:25];
-wire 		  doDemoSnd  = status[27];
-
-wire [7:0] oDSW0 = {doDemoSnd,doExtend,doRank,doLives,3'd0};
-wire [7:0] oDSW1 = {dcService,dcCabinet,6'd0};
-wire [7:0] oDSW2 = {8'd0};
-
-
 reg   [3:0] tno  = 0;
 
-// Title specific DipSWs
+// DIP switches
 
-wire [23:0] DSWs = (tno==1) ? {tDSW2,tDSW1,tDSW0} :
-				   (tno==2) ? {mDSW2,mDSW1,mDSW0} :
-				   (tno==3) ? {dDSW2,dDSW1,dDSW0} :
-				   (tno==4) ? {oDSW2,oDSW1,oDSW0} :
-				   (tno==5) ? {sw[2],sw[1],sw[0]} : 24'h0;
-
+wire [23:0] DSWs =
+		   (tno==1 || tno==3) ? {sw[1][3:0],sw[2][3:0],sw[1],sw[0]} :
+		   (tno==2 ) ? {sw[2][3:0],sw[2][3:0],sw[1],sw[0]} :
+		   {sw[2],sw[1],sw[0]};
 
 
 ////////////////////   CLOCKS   ///////////////////
@@ -326,8 +237,7 @@ reg btn_right_2 = 0;
 reg btn_trig1_2  = 0;
 reg btn_trig2_2  = 0;
 
-
-wire bCabinet  = dcCabinet;
+wire cabinet  = 1'b0;                            // (upright only)
 
 wire m_up2     = btn_up_2    | joystk2[3];
 wire m_down2   = btn_down_2  | joystk2[2];
@@ -339,12 +249,12 @@ wire m_trig22  = btn_trig2_2 | joystk2[5];
 wire m_start1  = btn_one_player  | joystk1[6] | joystk2[6] | btn_start_1;
 wire m_start2  = btn_two_players | joystk1[7] | joystk2[7] | btn_start_2;
 
-wire m_up1     = btn_up      | joystk1[3] | (bCabinet ? 1'b0 : m_up2);
-wire m_down1   = btn_down    | joystk1[2] | (bCabinet ? 1'b0 : m_down2);
-wire m_left1   = btn_left    | joystk1[1] | (bCabinet ? 1'b0 : m_left2);
-wire m_right1  = btn_right   | joystk1[0] | (bCabinet ? 1'b0 : m_right2);
-wire m_trig11  = btn_trig1   | joystk1[4] | (bCabinet ? 1'b0 : m_trig21);
-wire m_trig12  = btn_trig2   | joystk1[5] | (bCabinet ? 1'b0 : m_trig22);
+wire m_up1     = btn_up      | joystk1[3] | (cabinet ? 1'b0 : m_up2);
+wire m_down1   = btn_down    | joystk1[2] | (cabinet ? 1'b0 : m_down2);
+wire m_left1   = btn_left    | joystk1[1] | (cabinet ? 1'b0 : m_left2);
+wire m_right1  = btn_right   | joystk1[0] | (cabinet ? 1'b0 : m_right2);
+wire m_trig11  = btn_trig1   | joystk1[4] | (cabinet ? 1'b0 : m_trig21);
+wire m_trig12  = btn_trig2   | joystk1[5] | (cabinet ? 1'b0 : m_trig22);
 
 wire m_coin1   = btn_one_player | btn_coin_1 | joystk1[8];
 wire m_coin2   = btn_two_players| btn_coin_2 | joystk2[8];
@@ -419,7 +329,7 @@ fpga_druaga GameCore (
 
 	.ROMCL(clk_sys),.ROMAD(ioctl_addr),.ROMDT(ioctl_dout),.ROMEN(ioctl_wr & (ioctl_index == 0)),
 	.MODEL( tno[2:0] ),	// Selects the system
-	.flip_screen(status[28])
+	.flip_screen(status[7])
 );
 
 assign POUT = {oPIX[7:6],2'b00,oPIX[5:3],1'b0,oPIX[2:0],1'b0};

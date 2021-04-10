@@ -25,4 +25,12 @@
 		<part crc="e0074ee2" name="d21-3.3m"/>
 		<part crc="9b169db5" name="d21-5.5b"/>
 	</rom>
+	<switches default="00,00,00">
+		<dip bits="5"      name="Lives" ids="3,5"/>
+		<dip bits="8,9"    name="Extend" ids="Type A,Type C,Type D,Type D"/>
+		<dip bits="10"     name="Level Select" ids="Off,On" />
+		<dip bits="11"     name="Freeze" ids="Off,On"></dip>
+		<dip bits="15"     name="Cabinet" ids="Upright,Cocktail"></dip>
+		<dip bits="19"     name="Service Mode" ids="Off,On"></dip>
+	</switches>
 </misterromdescription>

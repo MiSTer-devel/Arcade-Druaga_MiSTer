@@ -1,5 +1,5 @@
 <misterromdescription>
-	<name>Pac & Pal</name>
+	<name>Pac &amp; Pal</name>
 	<mameversion>0220</mameversion>
 	<setname>pacnpal</setname>
         <manufacturer>Namco</manufacturer>
@@ -12,15 +12,15 @@
 	</rom>
 	<rom index="0" zip="pacnpal.zip" md5="None">
 		<!-- CPU ROM set for the original Pac & Pal.
-		  --
-		  --	<part repeat="0x2000"> FF </part>
-		  --	<part name="pap1-3b.1d"/>
-		  --	<part name="pap1-2b.1c"/>
-		  --	<part name="pap3-1.1b"/>
-		  --
-		  -- Although playable the attract mode stops early
-		  -- so we'll use pacnpal2 ROM set for now
-		  -- for full experience.
+		  -
+		  - 	<part repeat="0x2000"> FF </part>
+		  - 	<part name="pap1-3b.1d"/>
+		  - 	<part name="pap1-2b.1c"/>
+		  - 	<part name="pap3-1.1b"/>
+		  -
+		  -  Although playable the attract mode stops early
+		  -  so we'll use pacnpal2 ROM set for now
+		  -  for full experience.
 		  -->
 
 		<!-- main CPU -->
