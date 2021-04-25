@@ -38,6 +38,7 @@ module DRUAGA_VIDEO
 );
 
 parameter [2:0] SUPERPAC=3'd5;
+parameter [2:0] GROBDA=3'd6;
 
 wire [8:0] HPOS = PH-16;
 wire [8:0] VPOS = PV;
@@ -92,11 +93,11 @@ always @ ( posedge VCLK ) begin
 end
 
 
-assign CLT0_A = BGPN ^ ( MODEL==SUPERPAC ? 8'h0 : 8'h03 );
-assign VRAM_A = VRAMADRS & ( MODEL==SUPERPAC ? 11'h3FF : 11'h7FF );
+assign CLT0_A = BGPN ^ ( (MODEL==SUPERPAC || MODEL==GROBDA) ? 8'h0 : 8'h03 );
+assign VRAM_A = VRAMADRS & ( (MODEL==SUPERPAC || MODEL==GROBDA) ? 11'h3FF : 11'h7FF );
 
 wire            BGHI  = BGH & (CLT0_D!=4'd15);
-wire    [4:0]   BGCOL = { 1'b1, (MODEL==SUPERPAC ? ~CLT0_D :CLT0_D) };
+wire    [4:0]   BGCOL = { 1'b1, ((MODEL==SUPERPAC || MODEL==GROBDA) ? ~CLT0_D :CLT0_D) };
 
 always @(*) begin
     // This +2 adjustment is due to using a linear video timing generator
@@ -104,7 +105,7 @@ always @(*) begin
     ROW = (VPOS[8:3] + 6'h2) ^ {5{flip_screen}};
     COL  = HPOS[8:3] ^ {5{flip_screen}};
 
-    if( MODEL==SUPERPAC ) begin
+    if( MODEL==SUPERPAC  || MODEL==GROBDA ) begin
         VRAMADRS = { 1'b0,
                       COL[5] ? {COL[4:0], ROW[4:0]} :
                                {ROW[4:0], COL[4:0]}
