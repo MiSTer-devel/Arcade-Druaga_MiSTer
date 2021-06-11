@@ -11,7 +11,7 @@
 	<manufacturer>Namco</manufacturer>
 	<category>Maze</category>
 
-	<setname>pacnpal</setname>
+	<setname>pacnchmp</setname>
 	<parent>pacnpal</parent>
 	<mameversion>0220</mameversion>
 	<rbf>druaga</rbf>
