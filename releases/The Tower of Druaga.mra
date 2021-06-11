@@ -11,7 +11,7 @@
 	<manufacturer>Namco</manufacturer>
 	<category>Maze</category>
 
-	<setname>todruagao</setname>
+	<setname>todruaga</setname>
 	<parent>todruaga</parent>
 	<mameversion>0220</mameversion>
 	<rbf>druaga</rbf>
