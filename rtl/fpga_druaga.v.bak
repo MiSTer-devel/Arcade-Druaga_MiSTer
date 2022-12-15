@@ -183,34 +183,10 @@ cpucore sub_cpu
 
 
 // SOUND
-wire       WAVE_CLK;
+wire          WAVE_CLK;
 wire [7:0] WAVE_AD;
 wire [3:0] WAVE_DT;
 DLROM #(8,4) wsgwv(WAVE_CLK,WAVE_AD,WAVE_DT, ROMCL,ROMAD[7:0],ROMDT,ROMEN & (ROMAD[16:8]=={1'b1,8'h35}));
-
-// Grobda has 4 bit DAC at address $0002
-wire [7:0] TempSound;
-reg  [3:0] GrobdaDAC;
-wire GROBDA_DAC_W = ( ( SCPU_ADRS == 16'h0002 ) ) & SCPU_WE;
-
-assign SOUT = (MODEL == 3'd6)  ? ({ 1'b0,GrobdaDAC,GrobdaDAC } + TempSound) : TempSound;
-
-always @( negedge MCPU_CLK or posedge RESET ) begin
-    if ( RESET ) begin
-        GrobdaDAC <= 4'b000;
-    end
-    else begin
-		if (GROBDA_DAC_W) begin
-			GrobdaDAC <= SCPU_DO[3:0];
-		end
-		else begin
-			// Hack to silence DAC since it is left at 7 on sample playback
-			if (TempSound != 8'd0 && GrobdaDAC == 4'd7) begin
-				GrobdaDAC <= 4'd0;
-			end
-		end
-	end
-end
 
 WSG_8CH wsg
 (
@@ -218,10 +194,11 @@ WSG_8CH wsg
     .ADDR(SCPU_ADRS[5:0]),.DATA(SCPU_DO),.WE(SCPU_WE_WSG),
     .SND_ENABLE(PSG_ENABLE),
     .WAVE_CLK(WAVE_CLK),.WAVE_AD(WAVE_AD),.WAVE_DT(WAVE_DT),
-    .SOUT(TempSound)
+    .SOUT(SOUT)
 );
 
 endmodule
+
 
 module CLKGEN
 (
