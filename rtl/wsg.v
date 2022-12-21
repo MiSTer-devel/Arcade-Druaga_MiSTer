@@ -33,12 +33,14 @@ reg	 [7:0] fm [0:7];
 reg	 [3:0] fh [0:7];
 reg	 [2:0] fv [0:7];
 reg	 [3:0]  v [0:7];
+reg    [4:0] ct [0:7];
 
 wire	 [2:0] ra = ADDR[5:3];
 
 always @( posedge CLK24M ) begin
 	if ( WE ) begin
 		case ( ADDR[2:0] )
+		3'h2: ct[ra] <= DATA[4:0];
 		3'h3:  v[ra] <= DATA[3:0];
 		3'h4: fl[ra] <= DATA;
 		3'h5: fm[ra] <= DATA;
@@ -62,29 +64,28 @@ reg	[7:0] o, ot;
 reg  [19:0] c [0:7];
 reg   [7:0] wa;
 reg   [3:0] wm;
-reg			en;
 
 wire  [7:0] va = WAVE_DT * wm;
 
 wire [19:0] cx = c[phase];
 wire [19:0] fq = { fh[phase], fm[phase], fl[phase] };
+wire  [4:0] ctx = ct[phase];
 
 assign WAVE_CLK = CLK_WSGx8;
 assign WAVE_AD  = wa;
 
 always @ ( negedge CLK_WSGx8 ) begin
 	if ( phase ) begin
-		ot <= ot + (en ? { 4'h0, va[7:4] } : 0);
+		ot <= ot + { 4'h0, va[7:4] };
 	end
 	else begin
 		o  <= ot;
-		ot <= (en ? { 4'h0, va[7:4] } : 0);
+		ot <= { 4'h0, va[7:4] };
 	end
 	c[phase] <= cx + fq;
-	en       <= (fq!=0);
 	wm       <= v[phase];
-	wa       <= { fv[phase], cx[19:15] };
-	phase    <= phase + 1;
+	wa       <= { fv[phase], fq == 0 ? ctx[4:0] : cx[19:15] };
+	phase    <= phase + 1'd1;
 end
 
 wire [6:0] wsgmix = ( o[6:0] | {7{o[7]}} );
