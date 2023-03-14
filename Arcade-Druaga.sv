@@ -181,8 +181,8 @@ assign BUTTONS = 0;
 assign USER_OUT  = '1;
 assign LED_USER  = ioctl_download;
 
-assign VIDEO_ARX = status[1] ? 8'd16 : status[2] ? 8'd4 : 8'd3;
-assign VIDEO_ARY = status[1] ? 8'd9  : status[2] ? 8'd3 : 8'd4;
+assign VIDEO_ARX = status[1] ? 8'd16 : status[2] ? 12'd289 : 12'd224;
+assign VIDEO_ARY = status[1] ? 8'd9  : status[2] ? 12'd224 : 12'd289;
 
 `include "build_id.v"
 
