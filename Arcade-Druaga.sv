@@ -170,6 +170,7 @@ assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQM
 assign VGA_F1 = 0;
 assign VGA_SCALER  = 0;
 assign VGA_DISABLE = 0;
+assign FB_FORCE_BLANK = 0;
 assign HDMI_FREEZE = 0;
 
 assign AUDIO_MIX = 0;
